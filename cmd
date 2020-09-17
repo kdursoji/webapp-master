@@ -518,4 +518,111 @@ e156c976a2ba: Mounted from library/ubuntu
 f2fa9f4cf8fd: Mounted from library/ubuntu 
 1.0.0: digest: sha256:d6ed1f2478205482271bce1d1d576aaadf6cd699fff2e485731dba125436b5ea size: 1995
 krishna@evoke:~/Containerization/webapp-master$ minikube start
+krishna@evoke:~/Containerization/webapp-master$ ls
+cmd  config-file.yaml  Dockerfile  nginx-proxy-config.yaml  webapp
+krishna@evoke:~/Containerization/webapp-master$ kubectl apply -f .
+configmap/mc3-nginx-conf unchanged
+pod/mc3 created
+krishna@evoke:~/Containerization/webapp-master$ kubectl get pod
+NAME   READY   STATUS    RESTARTS   AGE
+mc3    2/2     Running   0          6s
+krishna@evoke:~/Containerization/webapp-master$ kubectl describe pod mc3
+Name:         mc3
+Namespace:    default
+Priority:     0
+Node:         minikube/192.168.99.111
+Start Time:   Thu, 17 Sep 2020 23:54:24 +0530
+Labels:       app=mc3
+Annotations:  Status:  Running
+IP:           172.17.0.3
+IPs:
+  IP:  172.17.0.3
+Containers:
+  webapp:
+    Container ID:   docker://71517ef6d939a8490af79866e5e4ab9a83a4588bc7d5e133e638f9d85b56c699
+    Image:          kdursoji91/flask-webapp:1.0.0
+    Image ID:       docker-pullable://kdursoji91/flask-webapp@sha256:d6ed1f2478205482271bce1d1d576aaadf6cd699fff2e485731dba125436b5ea
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Thu, 17 Sep 2020 23:54:25 +0530
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-h7wkd (ro)
+  nginx:
+    Container ID:   docker://9443806c41bd27d1a8b0510586a4e1af350aec416cb04d89fab1f96fc726afdd
+    Image:          nginx:alpine
+    Image ID:       docker-pullable://nginx@sha256:a97eb9ecc708c8aa715ccfb5e9338f5456e4b65575daf304f108301f3b497314
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Thu, 17 Sep 2020 23:54:26 +0530
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /etc/nginx/nginx.conf from nginx-proxy-config (rw,path="nginx.conf")
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-h7wkd (ro)
+Conditions:
+  Type              Status
+  Initialized       True 
+  Ready             True 
+  ContainersReady   True 
+  PodScheduled      True 
+Volumes:
+  nginx-proxy-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      mc3-nginx-conf
+    Optional:  false
+  default-token-h7wkd:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-h7wkd
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  16s   default-scheduler  Successfully assigned default/mc3 to minikube
+  Normal  Pulled     15s   kubelet, minikube  Container image "kdursoji91/flask-webapp:1.0.0" already present on machine
+  Normal  Created    15s   kubelet, minikube  Created container webapp
+  Normal  Started    15s   kubelet, minikube  Started container webapp
+  Normal  Pulled     15s   kubelet, minikube  Container image "nginx:alpine" already present on machine
+  Normal  Created    14s   kubelet, minikube  Created container nginx
+  Normal  Started    14s   kubelet, minikube  Started container nginx
+krishna@evoke:~/Containerization/webapp-master$ kubectl expose pod mc3 --type=NodePort --port=80
+service/mc3 exposed
+krishna@evoke:~/Containerization/webapp-master$ kubectl describe service mc3
+Name:                     mc3
+Namespace:                default
+Labels:                   app=mc3
+Annotations:              <none>
+Selector:                 app=mc3
+Type:                     NodePort
+IP:                       10.96.81.118
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  30776/TCP
+Endpoints:                172.17.0.3:80
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+krishna@evoke:~/Containerization/webapp-master$ kubectl service
+Error: unknown command "service" for "kubectl"
+Run 'kubectl --help' for usage.
+krishna@evoke:~/Containerization/webapp-master$ kubectl get service
+NAME         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP        8m27s
+mc3          NodePort    10.96.81.118   <none>        80:30776/TCP   4m45s
+krishna@evoke:~/Containerization/webapp-master$ minikube service mc3
+|-----------|------|-------------|-----------------------------|
+| NAMESPACE | NAME | TARGET PORT |             URL             |
+|-----------|------|-------------|-----------------------------|
+| default   | mc3  |          80 | http://192.168.99.111:30776 |
+|-----------|------|-------------|-----------------------------|
+🎉  Opening service default/mc3 in default browser...
 
